@@ -47,22 +47,46 @@ driver.findElement(By.css(':not(.hidden).p-one-day'))
         return element;
     })
     .then(function(element) {
-        times.forEach(function(time) {
-            element.findElement(By.xpath("//a[contains(text(), '" + time + "')]")).then(function(e) {
-                e.click();
-                console.log('Opened session for: ' + time);
-                driver.findElements(By.css('.hs-image-0000000001')).then(function(seatElements) {
-                    seatElements.forEach(function(seatElement) {
-                        var seatInfo = "";
-                        seatElement.getAttribute('exp-data-row').then(function(attribute) {
-                            seatInfo += 'Row: ' + attribute;
-                        })
-                        seatElement.getAttribute('exp-data-col').then(function(attribute) {
-                            seatInfo += 'Col: ' + attribute;
-                        })
-                        console.log(seatInfo);
-                    })
-                })
+        var time = times[1];
+        element.findElement(By.xpath("//a[contains(text(), '" + time + "')]")).then(function(e) {
+            console.log('Opening session for: ' + time);
+            return e.click();
+        })
+    })
+    .then(function() {
+        console.log('Waiting for hall to be displayed...');
+        return driver.wait(isHallContainerDisplayed(), 5000);
+    })
+    .then(function() {
+        driver.findElements(By.css('.hs-image-0000000001')).then(function(seatElements) {
+            console.log('Found ' + seatElements.length + ' free seats:');
+            seatElements.forEach(function(seatElement) {
+                console.log(getSeatInfo(seatElement));
             })
         })
+    })
+
+function getSeatInfo(seatElement) {
+    var seatInfo = "";
+    seatElement.getAttribute('exp-data-row').then(function(attribute) {
+        seatInfo += 'Row: ' + attribute;
     });
+    seatElement.getAttribute('exp-data-col').then(function(attribute) {
+        seatInfo += 'Col: ' + attribute;
+    });
+    return seatInfo;
+}
+
+function isHallContainerDisplayed() {
+    driver.findElement(By.className('hallContainer')).then(function() {
+        return true;
+    }, function(err) {
+        if (err.message.startsWith("no such element")) {
+            console.log("Didn't find an element.")
+            return false;
+        } else {
+            console.log("REJECTED!")
+            promise.rejected(err);
+        }
+    })
+}
