@@ -35,8 +35,18 @@ for time in times:
     print("\nPrice is: " + price.text)
     sits_elements = hall_container.find_elements_by_css_selector(".hs-image-0000000001")
     print("\nFound " + str(len(sits_elements)) + " sits:")
+    sits = {}
     for e in sits_elements:
-        print("Row: " + e.get_attribute("exp-data-row") + "; Col: " + e.get_attribute("exp-data-col"))
+        row = e.get_attribute("exp-data-row")
+        col = e.get_attribute("exp-data-col")
+        if row in list(sits.keys()):
+            sits[row].append(col)
+        else:
+            sits[row] = [col]
     driver.get("http://planetakino.ua/showtimes/#imax-3d")
+
+    for k, v in sits.items():
+        print("Row: " + k + "; Sits: " + str(v))
     
 driver.close()
+driver.quit()
