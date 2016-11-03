@@ -33,7 +33,8 @@ for time in times:
         print("I'll add support for night sessions later")
         continue
     try:
-        driver.find_element_by_xpath("//a[contains(text(), '" + time + "')]").click()
+        link = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//*[contains(@class, 'p-one-day') and not(contains(@class, 'hidden'))]//a[contains(text(), '" + time + "')]")))
+        link.click()
         hall_container = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "hallContainer")))
         price = driver.find_element_by_class_name("ticets_info_blue")
         print("\nPrice is: " + price.text)
@@ -41,8 +42,8 @@ for time in times:
         print("\nFound " + str(len(sits_elements)) + " sits:")
         sits = {}
         for e in sits_elements:
-            row = e.get_attribute("exp-data-row")
-            col = e.get_attribute("exp-data-col")
+            row = int(e.get_attribute("exp-data-row"))
+            col = int(e.get_attribute("exp-data-col"))
             if row in list(sits.keys()):
                 sits[row].append(col)
             else:
@@ -56,11 +57,19 @@ for time in times:
         hall = ""
         #print(sits)
         for row in range(3, 13):
+            hall += str(row)
+            if row < 10:
+                hall += " : |"
+            else:
+                hall += ": |"
             for col in range(24, 0, -1):
                 if row in list(sits.keys()) and col in sits[row]:
                     hall += str(col)
+                    if col < 10:
+                         hall += " "
                 else:
-                    hall += "."
+                    hall += ". "
+                hall += "|"
             hall += "\n"
         print(hall)
     except TimeoutError:
